@@ -1,24 +1,6 @@
 void handleClock() {
   digitalWrite(led, 1);
-  if (server.method() == HTTP_GET) {
-    DateTime now = rtc.now();
-    StaticJsonBuffer<256> jsonBuffer;
-    JsonObject& root = jsonBuffer.createObject();
-    
-    root["year"]   = now.year();
-    root["month"]  = now.month();
-    root["day"]    = now.day();
-    root["hour"]   = now.hour();
-    root["minute"] = now.minute();
-    root["second"] = now.second();
-    
-    int bufferSize = root.measureLength() + 1;
-    char responseBuffer[bufferSize];
-    root.printTo(responseBuffer, bufferSize);
-    
-    server.send(200, "text/json", responseBuffer);
-  }
-  else {
+  if (server.method() == HTTP_POST) {
     for (uint8_t i=0; i<server.args(); i++){
       if (server.argName(i) == "plain") {
         StaticJsonBuffer<200> jsonBuffer;
@@ -26,17 +8,74 @@ void handleClock() {
 
         if (!root.success()) {
           Serial.println("parseObject() failed");
-          return;
+          break;
         }
 
         int jhour = root["hour"];
-        
-        Serial.println(jhour, DEC);
+        rtc.adjust(DateTime(root["year"], root["month"], root["day"], root["hour"], root["minute"], root["second"]));
       }
     }
-    
-    server.send(200, "text/plain", "clock post");
   }
+  
+  DateTime now = rtc.now();
+  StaticJsonBuffer<256> jsonBuffer;
+  JsonObject& root = jsonBuffer.createObject();
+  
+  root["year"]   = now.year();
+  root["month"]  = now.month();
+  root["day"]    = now.day();
+  root["hour"]   = now.hour();
+  root["minute"] = now.minute();
+  root["second"] = now.second();
+  
+  int bufferSize = root.measureLength() + 1;
+  char responseBuffer[bufferSize];
+  root.printTo(responseBuffer, bufferSize);
+  
+  server.send(200, "text/json", responseBuffer);
+  
+  digitalWrite(led, 0);
+}
+
+void handleTimer() {
+  digitalWrite(led, 1);
+  if (server.method() == HTTP_POST) {
+    for (uint8_t i=0; i<server.args(); i++){
+      if (server.argName(i) == "plain") {
+        StaticJsonBuffer<200> jsonBuffer;
+        JsonObject& root = jsonBuffer.parseObject(server.arg(i));
+
+        if (!root.success()) {
+          Serial.println("parseObject() failed");
+          break;
+        }
+
+        onHour    = root["on"]["hour"];
+        onMinute  = root["on"]["minute"];
+        offHour   = root["off"]["hour"];
+        offMinute = root["off"]["minute"];
+      }
+    }
+  }
+
+  StaticJsonBuffer<256> jsonBuffer;
+  JsonObject& root = jsonBuffer.createObject();
+  
+  JsonObject& onTime = root.createNestedObject("on");
+  onTime["hour"]   = onHour;
+  onTime["month"]  = onMinute;
+  
+  JsonObject& offTime = root.createNestedObject("off");
+  offTime["hour"]   = offHour;
+  offTime["month"]  = offMinute;
+  
+  
+  int bufferSize = root.measureLength() + 1;
+  char responseBuffer[bufferSize];
+  root.printTo(responseBuffer, bufferSize);
+  
+  server.send(200, "text/json", responseBuffer);
+  
   digitalWrite(led, 0);
 }
 

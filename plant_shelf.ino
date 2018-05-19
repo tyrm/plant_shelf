@@ -13,7 +13,17 @@ ESP8266WebServer server(80);
 RTC_PCF8523 rtc;
 
 const int led = 0;
-char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+
+const int lamp1 = 15;
+const int lamp2 = 16;
+
+const char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+
+int onHour = 8;
+int onMinute = 0;
+
+int offHour = 16;
+int offMinute = 0;
 
 void setup(void){
   // Init RTC
@@ -52,6 +62,7 @@ void setup(void){
   server.on("/", handleRoot);
 
   server.on("/clock", handleClock);
+  server.on("/timer", handleTimer);
   
   server.on("/inline", [](){
     server.send(200, "text/text", "this works as well");
