@@ -1,3 +1,36 @@
+void handleBrightness() {
+  digitalWrite(led, 1);
+  if (server.method() == HTTP_POST) {
+    for (uint8_t i=0; i<server.args(); i++){
+      if (server.argName(i) == "plain") {
+        StaticJsonBuffer<200> jsonBuffer;
+        JsonObject& root = jsonBuffer.parseObject(server.arg(i));
+
+        if (!root.success()) {
+          Serial.println("parseObject() failed");
+          break;
+        }
+
+        setBrightness(root["brighness1"], true, false);
+        setBrightness(root["brighness2"], false, true);
+      }
+    }
+  }
+  
+  StaticJsonBuffer<256> jsonBuffer;
+  JsonObject& root = jsonBuffer.createObject();
+  root["brighness1"] = brighness1;
+  root["brighness2"] = brighness2;
+  
+  int bufferSize = root.measureLength() + 1;
+  char responseBuffer[bufferSize];
+  root.printTo(responseBuffer, bufferSize);
+  
+  server.send(200, "text/json", responseBuffer);
+  
+  digitalWrite(led, 0);
+}
+
 void handleClock() {
   digitalWrite(led, 1);
   if (server.method() == HTTP_POST) {
@@ -13,6 +46,8 @@ void handleClock() {
 
         int jhour = root["hour"];
         rtc.adjust(DateTime(root["year"], root["month"], root["day"], root["hour"], root["minute"], root["second"]));
+
+        checkAlarmState();
       }
     }
   }
@@ -55,6 +90,8 @@ void handleTimer() {
         onMinute     = root["on"]["minute"];
         offHour      = root["off"]["hour"];
         offMinute    = root["off"]["minute"];
+        
+        checkAlarmState();
       }
     }
   }
