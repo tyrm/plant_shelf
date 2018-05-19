@@ -62,12 +62,12 @@ void handleTimer() {
   JsonObject& root = jsonBuffer.createObject();
   
   JsonObject& onTime = root.createNestedObject("on");
-  onTime["hour"]   = onHour;
-  onTime["month"]  = onMinute;
+  onTime["hour"]    = onHour;
+  onTime["minute"]  = onMinute;
   
   JsonObject& offTime = root.createNestedObject("off");
-  offTime["hour"]   = offHour;
-  offTime["month"]  = offMinute;
+  offTime["hour"]    = offHour;
+  offTime["minute"]  = offMinute;
   
   
   int bufferSize = root.measureLength() + 1;
