@@ -25,6 +25,8 @@ int onMinute = 0;
 int offHour = 16;
 int offMinute = 0;
 
+int onBrightness = 255;
+
 void setup(void){
   // Init RTC
   if (! rtc.begin()) {

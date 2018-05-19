@@ -50,25 +50,26 @@ void handleTimer() {
           break;
         }
 
-        onHour    = root["on"]["hour"];
-        onMinute  = root["on"]["minute"];
-        offHour   = root["off"]["hour"];
-        offMinute = root["off"]["minute"];
+        onBrightness = root["brightness"];
+        onHour       = root["on"]["hour"];
+        onMinute     = root["on"]["minute"];
+        offHour      = root["off"]["hour"];
+        offMinute    = root["off"]["minute"];
       }
     }
   }
 
   StaticJsonBuffer<256> jsonBuffer;
-  JsonObject& root = jsonBuffer.createObject();
+  JsonObject& root   = jsonBuffer.createObject();
+  root["brightness"] = onBrightness;
   
   JsonObject& onTime = root.createNestedObject("on");
-  onTime["hour"]    = onHour;
-  onTime["minute"]  = onMinute;
+  onTime["hour"]     = onHour;
+  onTime["minute"]   = onMinute;
   
   JsonObject& offTime = root.createNestedObject("off");
-  offTime["hour"]    = offHour;
-  offTime["minute"]  = offMinute;
-  
+  offTime["hour"]     = offHour;
+  offTime["minute"]   = offMinute;
   
   int bufferSize = root.measureLength() + 1;
   char responseBuffer[bufferSize];
