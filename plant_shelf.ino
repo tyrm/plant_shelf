@@ -32,7 +32,7 @@ int onBrightness = 127;
 
 bool clockLastTrigger             = false; // false == off, true == on
 unsigned long clockPreviousMillis = 0;
-unsigned long clockInterval       = 60000;
+unsigned long clockInterval       = 30000;
 
 void setup(void){
   // Init RTC
@@ -64,9 +64,19 @@ void setup(void){
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  if (MDNS.begin("plant-shelf")) {
+  String myName = "plant-" + getName();
+  
+  int bufferSize = myName.length() + 1;
+  char nameBuffer[bufferSize];
+
+  myName.toCharArray(nameBuffer, bufferSize);
+
+  if (MDNS.begin(nameBuffer)) {
     Serial.println("MDNS responder started");
   }
+  Serial.print(" MDNS name: ");
+  Serial.print(myName);
+  Serial.println(".local");
 
   server.on("/", handleRoot);
 
@@ -134,6 +144,21 @@ void checkAlarmState() {
         setLamp(false, true, true);
       }
     }
+}
+
+String formatHex8(char data) {
+  String value = "";
+  if (data<0x10) {value = value + "0";} 
+  value = value + String(data, HEX);
+
+  return value;
+}
+
+String getName() {
+  byte mac[6];
+  WiFi.macAddress(mac);
+
+  return String(formatHex8(mac[3]) + formatHex8(mac[4]) + formatHex8(mac[5]));
 }
 
 void setLamp(bool s, bool l1, bool l2) {
